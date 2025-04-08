@@ -1,0 +1,27 @@
+services:
+  database:
+    image: postgres:17
+    ports:
+      - "5432:5432"
+    volumes:
+      - rps-postgres:/var/lib/postgresql/data
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: mypassword
+      POSTGRES_DB: postgres
+
+  app:
+    build: .
+    depends_on:
+      - database
+    env_file:
+      - .env
+    ports:
+      - "8080:8080"
+    volumes:
+      - .:/app
+    working_dir: /app
+    command: go run main.go
+
+volumes:
+  rps-postgres:
