@@ -2,22 +2,36 @@ package services
 
 import (
 	"context"
+	"fmt"
 	"github.com/uptrace/bun"
+	"math/rand"
 	"rps/pkg/models"
 )
 
 type RoomService interface {
-	CreateRoom(ctx context.Context, room models.RoomDTO) (models.Room, error)
-	GetRoom(ctx context.Context, id uint64) (models.Room, error)
-	ListRooms(ctx context.Context) ([]models.Room, error)
+	CreateRoomService(ctx context.Context, room models.RoomDTO) (models.Room, error)
+	GetRoomByIDService(ctx context.Context, id uint64) (models.Room, error)
+	GetRoomByAddressService(ctx context.Context, address string) (models.Room, error)
+	ListRoomsService(ctx context.Context) ([]models.Room, error)
 }
 
 type roomServiceImpl struct {
 	db *bun.DB
 }
 
-func (s *roomServiceImpl) GenerateAddress() (string, error) {
-	return "todo", nil
+// address for private rooms
+func (s *roomServiceImpl) GenerateAddress(length int) (string, error) {
+	if length < 0 || length > 128 {
+		return "", fmt.Errorf("length must be between 0 and 128, current: %d", length)
+	}
+
+	const letters = "abcdefghijklmnopqrstuvwxyz"
+	b := make([]byte, length)
+	for i := range b {
+		b[i] = letters[rand.Intn(len(letters))]
+	}
+
+	return string(b), nil
 }
 
 // SERVICES THAT WILL BE USED BY THE HANDLERS
