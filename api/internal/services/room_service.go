@@ -37,9 +37,13 @@ func (s *roomServiceImpl) GenerateAddress(length int) (string, error) {
 // SERVICES THAT WILL BE USED BY THE HANDLERS
 
 func (s *roomServiceImpl) CreateRoomService(ctx context.Context, dto models.RoomDTO) (models.Room, error) {
-	address, err := s.GenerateAddress()
-	if err != nil {
-		return models.Room{}, err
+	address := ""
+	if dto.Private {
+		a, err := s.GenerateAddress(50)
+		if err != nil {
+			return models.Room{}, fmt.Errorf("failed to generate private address: %w", err)
+		}
+		address = a
 	}
 
 	room := models.Room{
@@ -50,7 +54,7 @@ func (s *roomServiceImpl) CreateRoomService(ctx context.Context, dto models.Room
 		Address:     address,
 	}
 
-	_, err = s.db.NewInsert().Model(&room).Exec(ctx)
+	_, err := s.db.NewInsert().Model(&room).Exec(ctx)
 	if err != nil {
 		return models.Room{}, err
 	}
@@ -79,4 +83,15 @@ func (s *roomServiceImpl) ListRoomsService(ctx context.Context) ([]models.Room, 
 	}
 
 	return rooms, nil
+}
+
+func (s *roomServiceImpl) GetRoomByIDService(ctx context.Context, id uint64) (models.Room, error) {
+	room := models.Room{}
+
+	err := s.db.NewSelect().Model(&room).Where("id = ?", id).Scan(ctx)
+	if err != nil {
+		return models.Room{}, err
+	}
+
+	return room, nil
 }
