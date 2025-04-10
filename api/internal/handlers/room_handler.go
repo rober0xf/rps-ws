@@ -3,11 +3,11 @@ package handlers
 import (
 	"database/sql"
 	"errors"
+	"github.com/gin-gonic/gin"
 	"net/http"
 	"rps/api/internal/services"
 	"rps/pkg/models"
 	"strconv"
-	"github.com/gin-gonic/gin"
 )
 
 type RoomHandler struct {
@@ -75,4 +75,18 @@ func (h *RoomHandler) GetRoomByIDHandler(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, room)
+}
+
+func (h *RoomHandler) ListRoomsHandler(c *gin.Context) {
+	rooms, err := h.roomService.ListRoomsService(c.Request.Context())
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			c.JSON(http.StatusNotFound, gin.H{"error": "no rooms found"})
+			return
+		}
+		c.AbortWithError(http.StatusInternalServerError, err)
+		return
+	}
+
+	c.JSON(http.StatusOK, rooms)
 }
